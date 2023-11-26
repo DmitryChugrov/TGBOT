@@ -5,6 +5,6 @@ public class AdvertisementOfForHomeAndGarden extends Advertisement{
         super(category, title, description, price, photo);
     }
     public void setCategory() {
-        super.setCategory("Дом и сад");
+        super.setCategory("Для дома и сада");
     }
 }

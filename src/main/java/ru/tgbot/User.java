@@ -10,12 +10,6 @@ import java.util.Map;
 public class User {
         private String profileLink;
         private long chatID;
-        private String category;
-        private String title;
-        private String description;
-        private int price;
-        private String photo;
-        private Advertisement advertisement = new Advertisement(category, title, description, price, photo);
         private List<Advertisement> userAds;
         private List<Advertisement> viewedAds;
 
