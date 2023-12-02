@@ -54,4 +54,5 @@ public class Advertisement {
     public void setPhoto(String photo) {
         this.photo = photo;
     }
+
 }

@@ -1,11 +1,10 @@
 package ru.tgbot;
 
+import org.apache.log4j.Logger;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.*;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.*;
@@ -13,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 
 public class DemoBot extends TelegramLongPollingBot {
+    private static Logger logger = Logger.getLogger(DemoBot.class);
     private final String BOT_TOKEN;
     private final String BOT_NAME;
     private Map<Long, Advertisement> adData = new ConcurrentHashMap<>();
@@ -43,40 +43,50 @@ public class DemoBot extends TelegramLongPollingBot {
             String messageText = update.getMessage().getText();
             Message message = update.getMessage();
             if ("/start".equals(messageText)) {
+                logger.info("Received /start command from " + profileLink);
                 sendProfileInfo(chatId, username, profileLink);
             }
             if ("/createtransport".equals(messageText)) {
+                logger.info("Received /createtransport command from " + profileLink);
                 adData.put(chatId, new AdvertisementOfTransport("", "", "", 0, ""));
                 sendOut(chatId, "Введите заголовок объявления");
             }else if ("/createproperty".equals(messageText)) {
+                logger.info("Received /createproperty command from " + profileLink);
                     adData.put(chatId, new AdvertisementOfProperty("", "", "", 0, ""));
                     sendOut(chatId, "Введите заголовок объявления");
             }
             else if ("/createservices".equals(messageText)) {
+                logger.info("Received /createservices command from " + profileLink);
                 adData.put(chatId, new AdvertisementOfServices("", "", "", 0, ""));
                 sendOut(chatId, "Введите заголовок объявления");
             }
             else if ("/createjob".equals(messageText)) {
+                logger.info("Received /createjob command from " + profileLink);
                 adData.put(chatId, new AdvertisementOfJob("", "", "", 0, ""));
                 sendOut(chatId, "Введите заголовок объявления");
             }
             else if ("/createhobbyandentertainment".equals(messageText)) {
+                logger.info("Received /createhobbyandentertainment command from " + profileLink);
                 adData.put(chatId, new AdvertisementOfHobbyAndEntertainment("", "", "", 0, ""));
                 sendOut(chatId, "Введите заголовок объявления");
             }
             else if ("/createforhomeandgarden".equals(messageText)) {
+                logger.info("Received /createforhomeandgarden command from " + profileLink);
                 adData.put(chatId, new AdvertisementOfForHomeAndGarden("", "", "", 0, ""));
                 sendOut(chatId, "Введите заголовок объявления");
             }
             else if ("/createelectronics".equals(messageText)) {
+                logger.info("Received /createelectronics command from " + profileLink);
                 adData.put(chatId, new AdvertisementOfElectronics("", "", "", 0, ""));
                 sendOut(chatId, "Введите заголовок объявления");
             }
             else if ("/createautoparts".equals(messageText)) {
+                logger.info("Received /createautoparts command from " + profileLink);
                 adData.put(chatId, new AdvertisementOfAutoparts("", "", "", 0, ""));
                 sendOut(chatId, "Введите заголовок объявления");
             }
             else if ("/createanimals".equals(messageText)) {
+                logger.info("Received /createanimals command from " + profileLink);
                 adData.put(chatId, new AdvertisementOfAnimals("", "", "", 0, ""));
                 sendOut(chatId, "Введите заголовок объявления");
             }
