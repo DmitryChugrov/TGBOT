@@ -43,10 +43,6 @@ public class Advertisement {
         return category;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
     public String getPhoto() {
         return photo;
     }
@@ -55,4 +51,7 @@ public class Advertisement {
         this.photo = photo;
     }
 
+    public void setCategory(String category) {
+        this.category = category;
+    }
 }
