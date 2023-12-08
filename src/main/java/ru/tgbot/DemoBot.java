@@ -90,6 +90,11 @@ public class DemoBot extends TelegramLongPollingBot {
                 adData.put(chatId, new AdvertisementOfAnimals("", "", "", 0, ""));
                 sendOut(chatId, "Введите заголовок объявления");
             }
+            else if ("/createpersonalthing".equals(messageText)) {
+                logger.info("Received /createpersonalthing command from " + profileLink);
+                adData.put(chatId, new AdvertisementOfPersonalThings("", "", "", 0, ""));
+                sendOut(chatId, "Введите заголовок объявления");
+            }
             else {
                     if (adData.containsKey(chatId)) {
                         Advertisement currentAd = adData.get(chatId);
@@ -121,6 +126,9 @@ public class DemoBot extends TelegramLongPollingBot {
                         }else if (currentAd instanceof AdvertisementOfAnimals) {
                             AdvertisementOfAnimals currentAnimalsAd = (AdvertisementOfAnimals) currentAd;
                             processAdvertisement("Животные", currentAnimalsAd, chatId, messageText, message, profileLink);
+                        }else if (currentAd instanceof AdvertisementOfPersonalThings){
+                            AdvertisementOfPersonalThings currentPersonalThingAd = (AdvertisementOfPersonalThings) currentAd;
+                            processAdvertisement("Личные вещи", currentPersonalThingAd,chatId, messageText, message, profileLink);
                         }
                     }
                 }
