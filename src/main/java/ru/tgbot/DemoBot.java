@@ -258,9 +258,7 @@ public class DemoBot extends TelegramLongPollingBot {
     private java.io.File customDownloadFile(File file) throws TelegramApiException, IOException {
         String filePath = file.getFilePath();
         java.io.File downloadedFile = downloadFile(filePath);
-        // Указываем путь для сохранения фото на диск
         java.io.File savedFile = new java.io.File("D:\\TGBOT\\photos\\" + downloadedFile.getName() + ".jpg");
-        // Копируем скачанный файл на указанный путь
         Files.copy(downloadedFile.toPath(), savedFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
         return savedFile;
@@ -366,21 +364,4 @@ public class DemoBot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
     }
-    private void loadWhiteList() {
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader("whitelist.txt"));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                WHITE_LIST.add(line);
-            }
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private boolean isUserAllowed(String userLink) {
-        return WHITE_LIST.contains(userLink);
-    }
-
 }
