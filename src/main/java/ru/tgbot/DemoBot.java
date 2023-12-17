@@ -30,6 +30,7 @@ public class DemoBot extends TelegramLongPollingBot {
     private Map<String, Advertisement> usersAd;
     Storage storage = new Storage();
     private ExecutorService executor;
+    private final List<String> WHITE_LIST = new ArrayList<>();
 
     public DemoBot(String token, String chatId) {
         this.BOT_TOKEN = token;
@@ -146,13 +147,30 @@ public class DemoBot extends TelegramLongPollingBot {
                 if ("/viewmy".equals(messageText)) {
                     logger.info("Received /viewmy command from " + profileLink);
                     getAdvertisements(profileLink, chatId);
+                }if ("/help".equals(messageText)){
+                    logger.info("Received /help command from " + profileLink);
+                    sendOut(chatId, "Список команд для работы с ботом: \n" +
+                            "start - Старт работы с ботом\n" +
+                            "createtransport - Создание в объявлений в категории \"Транспорт\"\n" +
+                            "createproperty - Создание в объявлений в категории \"Недвижимость\" \n" +
+                            "createservices - Создание в объявлений в категории \"Услуги\" \n" +
+                            "createpersonalthings - Создание в объявлений в категории \"Личные вещи\" \n" +
+                            "createjob - Создание в объявлений в категории \"Работа\" \n" +
+                            "createhobbyandentertainment - Создание в объявлений в категории \"Хобби и отдых\"\n" +
+                            "createforhomeandgarden - Создание в объявлений в категории \"Для дома и сада\"\n" +
+                            "createelectronics - Создание в объявлений в категории \"Электроника\"\n" +
+                            "createautoparts - Создание в объявлений в категории \"Запчасти\"\n" +
+                            "createanimals - Создание в объявлений в категории \"Животные\"\n" +
+                            "view - Просмотр объявлений\n" +
+                            "viewmy - Просмотр собственных объявлений\n" +
+                            "deletemyad - Удаление собственного объявления \n");
                 }
                 if ("/deletemyad".equals(messageText)) {
                     logger.info("Received /deletemyad command from " + profileLink);
                     getAdvertisements(profileLink,chatId);
                     sendOut(chatId, "Введите индекс объявления. Для выхода из этой функции введите \" -1 \"");
                 } else {
-                    int indexToRemove;
+                    int indexToRemove = 0;
                     indexToRemove = Integer.parseInt(messageText);
                     deleteAdvertisements(profileLink,chatId,indexToRemove);
                 }
@@ -306,7 +324,7 @@ public class DemoBot extends TelegramLongPollingBot {
                 sendOut(chatId,"Ваши объявления: ");
                 for (int i = 0; i < advertisements.size(); i++) {
                     Advertisement ad = advertisements.get(i);
-                    String adInfo = "Категория: " + ad.getCategory() + "\n" + "Заголовок: " + ad.getTitle() + "\n" +
+                    String adInfo = "Индекс объявления: " + i +"\n" +"Категория: " + ad.getCategory() + "\n" + "Заголовок: " + ad.getTitle() + "\n" +
                             "Описание: " + ad.getDescription() + "\n" + "Цена (руб): " + ad.getPrice();
                     sendPhoto(chatId, ad.getPhoto(), adInfo);
                 }
@@ -329,7 +347,6 @@ public class DemoBot extends TelegramLongPollingBot {
                     advertisements.remove(indexToRemove);
                     existingData.put(profileLink, advertisements);
 
-                    // Сохранение обновленных данных
                     try (Writer writer = new FileWriter(FILE_NAME)) {
                         gson.toJson(existingData, writer);
                     } catch (IOException e) {
@@ -348,6 +365,22 @@ public class DemoBot extends TelegramLongPollingBot {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    private void loadWhiteList() {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader("whitelist.txt"));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                WHITE_LIST.add(line);
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean isUserAllowed(String userLink) {
+        return WHITE_LIST.contains(userLink);
     }
 
 }
