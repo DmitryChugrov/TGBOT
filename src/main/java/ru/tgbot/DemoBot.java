@@ -22,7 +22,7 @@ import java.util.concurrent.Executors;
 
 
 public class DemoBot extends TelegramLongPollingBot {
-    private static final String FILE_NAME = "data.json";
+    private static final String FILE_NAME = "D:\\TGBOT\\data.json";
     private static Logger logger = Logger.getLogger(DemoBot.class);
     private final String BOT_TOKEN;
     private final String BOT_NAME;
@@ -140,13 +140,21 @@ public class DemoBot extends TelegramLongPollingBot {
                     }
                 }
                 if ("/view".equals(messageText)) {
-                    for (Map.Entry<Advertisement, String> entry : storage.entrySet()) {
-                        String prLinks = entry.getValue();
-                        Advertisement ad = entry.getKey();
-                        String adInfo = "Пользователь: " + prLinks + "\n" + "Категория: " + ad.getCategory() + "\n" + "Заголовок: " + ad.getTitle() + "\n" +
-                                "Описание: " + ad.getDescription() + "\n" + "Цена (руб): " + ad.getPrice();
-                        sendPhoto(chatId, ad.getPhoto(), adInfo);
-                    }
+                    logger.info("Received /view command from " + profileLink);
+                    loadData(chatId);
+                }
+                if ("/viewmy".equals(messageText)) {
+                    logger.info("Received /viewmy command from " + profileLink);
+                    getAdvertisements(profileLink, chatId);
+                }
+                if ("/deletemyad".equals(messageText)) {
+                    logger.info("Received /deletemyad command from " + profileLink);
+                    getAdvertisements(profileLink,chatId);
+                    sendOut(chatId, "Введите индекс объявления. Для выхода из этой функции введите \" -1 \"");
+                } else {
+                    int indexToRemove;
+                    indexToRemove = Integer.parseInt(messageText);
+                    deleteAdvertisements(profileLink,chatId,indexToRemove);
                 }
             }
         });
@@ -156,7 +164,7 @@ public class DemoBot extends TelegramLongPollingBot {
     private void sendPhoto(long chatId, String fileId, String caption) {
         SendPhoto response = new SendPhoto();
         response.setChatId(String.valueOf(chatId));
-        response.setPhoto(new InputFile(fileId));
+        response.setPhoto(new InputFile(new java.io.File(fileId)));
         response.setCaption(caption);
         try {
             execute(response);
@@ -217,15 +225,10 @@ public class DemoBot extends TelegramLongPollingBot {
 
                 // Получаем ссылку на сохраненное фото
                 String photoLink = "D:\\TGBOT\\photos\\" + photoFile.getName();
-
-                // Сохраняем ссылку в файл json
                 currentAd.setPhoto(photoLink);
-
                 adData.remove(chatId);
-                adData.put(chatId, currentAd);
                 usersAd.put(profileLink, currentAd);
                 saveData(usersAd);
-                storage.addAdvertisement(profileLink, currentAd);
 
                 sendOut(chatId, "Объявление в категории " + currentAd.getCategory() + " успешно создано!");
             } catch (TelegramApiException | IOException e) {
@@ -238,12 +241,13 @@ public class DemoBot extends TelegramLongPollingBot {
         String filePath = file.getFilePath();
         java.io.File downloadedFile = downloadFile(filePath);
         // Указываем путь для сохранения фото на диск
-        java.io.File savedFile = new java.io.File("D:\\TGBOT\\photos\\" + downloadedFile.getName());
+        java.io.File savedFile = new java.io.File("D:\\TGBOT\\photos\\" + downloadedFile.getName() + ".jpg");
         // Копируем скачанный файл на указанный путь
         Files.copy(downloadedFile.toPath(), savedFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
         return savedFile;
     }
+
     private void saveData(Map<String, Advertisement> data) {
         try (Reader reader = new FileReader(FILE_NAME)) {
             Gson gson = new Gson();
@@ -263,7 +267,6 @@ public class DemoBot extends TelegramLongPollingBot {
                     existingData.put(profileLink, advertisements);
                 }
             }
-
             try (Writer writer = new FileWriter(FILE_NAME)) {
                 gson.toJson(existingData, writer);
             } catch (IOException e) {
@@ -273,4 +276,78 @@ public class DemoBot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
     }
+
+    private void loadData(long chatId) {
+        try (Reader reader = new FileReader(FILE_NAME)) {
+            Gson gson = new Gson();
+            Type type = new TypeToken<Map<String, List<Advertisement>>>() {}.getType();
+            Map<String, List<Advertisement>> data = gson.fromJson(reader, type);
+            for (String key : data.keySet()) {
+                List<Advertisement> ads = data.get(key);
+                for (Advertisement ad : ads) {
+                        String adInfo = "Пользователь: " + key + "\n" + "Категория: " + ad.getCategory() + "\n" + "Заголовок: " + ad.getTitle() + "\n" +
+                                "Описание: " + ad.getDescription() + "\n" + "Цена (руб): " + ad.getPrice();
+                        sendPhoto(chatId, ad.getPhoto(), adInfo);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private void getAdvertisements(String profileLink, long chatId) {
+        try (Reader reader = new FileReader(FILE_NAME)) {
+            Gson gson = new Gson();
+            Type type = new TypeToken<Map<String, List<Advertisement>>>() {}.getType();
+            Map<String, List<Advertisement>> existingData = gson.fromJson(reader, type);
+
+            if (existingData.containsKey(profileLink)) {
+                List<Advertisement> advertisements = existingData.get(profileLink);
+
+                sendOut(chatId,"Ваши объявления: ");
+                for (int i = 0; i < advertisements.size(); i++) {
+                    Advertisement ad = advertisements.get(i);
+                    String adInfo = "Категория: " + ad.getCategory() + "\n" + "Заголовок: " + ad.getTitle() + "\n" +
+                            "Описание: " + ad.getDescription() + "\n" + "Цена (руб): " + ad.getPrice();
+                    sendPhoto(chatId, ad.getPhoto(), adInfo);
+                }
+            } else {
+                sendOut(chatId, "У вас нет объявлений.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private void deleteAdvertisements(String profileLink, long chatId,int indexToRemove) {
+        try (Reader reader = new FileReader(FILE_NAME)) {
+            Gson gson = new Gson();
+            Type type = new TypeToken<Map<String, List<Advertisement>>>() {}.getType();
+            Map<String, List<Advertisement>> existingData = gson.fromJson(reader, type);
+
+            if (existingData.containsKey(profileLink)) {
+                List<Advertisement> advertisements = existingData.get(profileLink);
+                if (indexToRemove >= 0 && indexToRemove < advertisements.size()) {
+                    advertisements.remove(indexToRemove);
+                    existingData.put(profileLink, advertisements);
+
+                    // Сохранение обновленных данных
+                    try (Writer writer = new FileWriter(FILE_NAME)) {
+                        gson.toJson(existingData, writer);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    sendOut(chatId, "Объявление успешно удалено.");
+                }else if(indexToRemove == -1){
+                    sendOut(chatId, "Выполнен выход из функции удаления объявления");
+                }else {
+                    sendOut(chatId, "Неверный индекс объявления.");
+                }
+            } else {
+                sendOut(chatId, "Не найдено объявлений для данной ссылки на профиль.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

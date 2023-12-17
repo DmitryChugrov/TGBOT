@@ -1,5 +1,7 @@
 package ru.tgbot;
 
+import com.google.gson.Gson;
+
 public class Advertisement {
     private String category;
     private String title;
@@ -53,5 +55,9 @@ public class Advertisement {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+    public static Advertisement fromJson(String json) {
+        Gson gson = new Gson();
+        return gson.fromJson(json, Advertisement.class);
     }
 }
