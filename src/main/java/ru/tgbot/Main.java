@@ -10,7 +10,7 @@ public class Main {
         Dotenv dotenv = Dotenv.load();
         String botName = dotenv.get("BOT_NAME");
         String botToken = dotenv.get("BOT_TOKEN");
-        DemoBot bot = new DemoBot(botToken, botName);
+        TGBot bot = new TGBot(botToken, botName);
         TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
         try {
             telegramBotsApi.registerBot(bot);

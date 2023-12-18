@@ -17,22 +17,21 @@ import java.nio.file.StandardCopyOption;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 
-public class DemoBot extends TelegramLongPollingBot {
+public class TGBot extends TelegramLongPollingBot {
     private static final String FILE_NAME = "D:\\TGBOT\\data.json";
-    private static Logger logger = Logger.getLogger(DemoBot.class);
+    private static Logger logger = Logger.getLogger(TGBot.class);
     private final String BOT_TOKEN;
     private final String BOT_NAME;
     private Map<Long, Advertisement> adData;
     private Map<String, Advertisement> usersAd;
     private ExecutorService executor;
-    public DemoBot(String token, String chatId) {
+    public TGBot(String token, String name) {
         this.BOT_TOKEN = token;
-        this.BOT_NAME = chatId;
+        this.BOT_NAME = name;
         executor = Executors.newFixedThreadPool(10);
         adData = new HashMap<>();
         usersAd = new HashMap<>();
@@ -107,44 +106,44 @@ public class DemoBot extends TelegramLongPollingBot {
                         Advertisement currentAd = adData.get(chatId);
                         if (currentAd instanceof AdvertisementOfTransport) {
                             AdvertisementOfTransport currentTransportAd = (AdvertisementOfTransport) currentAd;
-                            processAdvertisement("Транспорт", currentTransportAd, chatId, messageText, message, profileLink);
+                            processOfCreatingAdvertisement("Транспорт", currentTransportAd, chatId, messageText, message, profileLink);
                         } else if (currentAd instanceof AdvertisementOfProperty) {
                             AdvertisementOfProperty currentPropertyAd = (AdvertisementOfProperty) currentAd;
-                            processAdvertisement("Недвижимость", currentPropertyAd, chatId, messageText, message, profileLink);
+                            processOfCreatingAdvertisement("Недвижимость", currentPropertyAd, chatId, messageText, message, profileLink);
                         } else if (currentAd instanceof AdvertisementOfServices) {
                             AdvertisementOfServices currentServicesAd = (AdvertisementOfServices) currentAd;
-                            processAdvertisement("Услуги", currentServicesAd, chatId, messageText, message, profileLink);
+                            processOfCreatingAdvertisement("Услуги", currentServicesAd, chatId, messageText, message, profileLink);
                         } else if (currentAd instanceof AdvertisementOfJob) {
                             AdvertisementOfJob currentJobAd = (AdvertisementOfJob) currentAd;
-                            processAdvertisement("Работа", currentJobAd, chatId, messageText, message, profileLink);
+                            processOfCreatingAdvertisement("Работа", currentJobAd, chatId, messageText, message, profileLink);
                         } else if (currentAd instanceof AdvertisementOfHobbyAndEntertainment) {
                             AdvertisementOfHobbyAndEntertainment currentHobbyAndEntertainmentAd = (AdvertisementOfHobbyAndEntertainment) currentAd;
-                            processAdvertisement("Хобби и развлечения", currentHobbyAndEntertainmentAd, chatId, messageText, message, profileLink);
+                            processOfCreatingAdvertisement("Хобби и развлечения", currentHobbyAndEntertainmentAd, chatId, messageText, message, profileLink);
                         } else if (currentAd instanceof AdvertisementOfForHomeAndGarden) {
                             AdvertisementOfForHomeAndGarden currentForHomeAndGardenAd = (AdvertisementOfForHomeAndGarden) currentAd;
-                            processAdvertisement("Для дома и сада", currentForHomeAndGardenAd, chatId, messageText, message, profileLink);
+                            processOfCreatingAdvertisement("Для дома и сада", currentForHomeAndGardenAd, chatId, messageText, message, profileLink);
                         } else if (currentAd instanceof AdvertisementOfElectronics) {
                             AdvertisementOfElectronics currentElectronicsAd = (AdvertisementOfElectronics) currentAd;
-                            processAdvertisement("Электроника", currentElectronicsAd, chatId, messageText, message, profileLink);
+                            processOfCreatingAdvertisement("Электроника", currentElectronicsAd, chatId, messageText, message, profileLink);
                         } else if (currentAd instanceof AdvertisementOfAutoparts) {
                             AdvertisementOfAutoparts currentAutopartsAd = (AdvertisementOfAutoparts) currentAd;
-                            processAdvertisement("Автозапчасти", currentAutopartsAd, chatId, messageText, message, profileLink);
+                            processOfCreatingAdvertisement("Автозапчасти", currentAutopartsAd, chatId, messageText, message, profileLink);
                         } else if (currentAd instanceof AdvertisementOfAnimals) {
                             AdvertisementOfAnimals currentAnimalsAd = (AdvertisementOfAnimals) currentAd;
-                            processAdvertisement("Животные", currentAnimalsAd, chatId, messageText, message, profileLink);
+                            processOfCreatingAdvertisement("Животные", currentAnimalsAd, chatId, messageText, message, profileLink);
                         } else if (currentAd instanceof AdvertisementOfPersonalThings) {
                             AdvertisementOfPersonalThings currentPersonalThingAd = (AdvertisementOfPersonalThings) currentAd;
-                            processAdvertisement("Личные вещи", currentPersonalThingAd, chatId, messageText, message, profileLink);
+                            processOfCreatingAdvertisement("Личные вещи", currentPersonalThingAd, chatId, messageText, message, profileLink);
                         }
                     }
                 }
                 if ("/view".equals(messageText)) {
                     logger.info("Received /view command from " + profileLink);
-                    loadData(chatId);
+                    showAds(chatId);
                 }
                 if ("/viewmy".equals(messageText)) {
                     logger.info("Received /viewmy command from " + profileLink);
-                    getAdvertisements(profileLink, chatId);
+                    showMyAds(profileLink, chatId);
                 }if ("/help".equals(messageText)){
                     logger.info("Received /help command from " + profileLink);
                     sendOut(chatId, "Список команд для работы с ботом: \n" +
@@ -165,12 +164,12 @@ public class DemoBot extends TelegramLongPollingBot {
                 }
                 if ("/deletemyad".equals(messageText)) {
                     logger.info("Received /deletemyad command from " + profileLink);
-                    getAdvertisements(profileLink,chatId);
+                    showMyAds(profileLink,chatId);
                     sendOut(chatId, "Введите индекс объявления. Для выхода из этой функции введите \" -1 \"");
                 } else {
                     int indexToRemove = 0;
                     indexToRemove = Integer.parseInt(messageText);
-                    deleteAdvertisements(profileLink,chatId,indexToRemove);
+                    deleteAdvertisement(profileLink,chatId,indexToRemove);
                 }
             }
         });
@@ -211,7 +210,7 @@ public class DemoBot extends TelegramLongPollingBot {
         }
     }
 
-    private void processAdvertisement(String category, Advertisement currentAd, long chatId, String messageText, Message message, String profileLink) {
+    private void processOfCreatingAdvertisement(String category, Advertisement currentAd, long chatId, String messageText, Message message, String profileLink) {
         currentAd.setCategory(category);
         if (currentAd.getTitle().isEmpty()) {
             currentAd.setTitle(messageText);
@@ -286,7 +285,7 @@ public class DemoBot extends TelegramLongPollingBot {
         }
     }
 
-    private void loadData(long chatId) {
+    private void showAds(long chatId) {
         try (Reader reader = new FileReader(FILE_NAME)) {
             Gson gson = new Gson();
             Type type = new TypeToken<Map<String, List<Advertisement>>>(){}.getType();
@@ -303,7 +302,7 @@ public class DemoBot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
     }
-    private void getAdvertisements(String profileLink, long chatId) {
+    private void showMyAds(String profileLink, long chatId) {
         try (Reader reader = new FileReader(FILE_NAME)) {
             Gson gson = new Gson();
             Type type = new TypeToken<Map<String, List<Advertisement>>>() {}.getType();
@@ -326,7 +325,7 @@ public class DemoBot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
     }
-    private void deleteAdvertisements(String profileLink, long chatId,int indexToRemove) {
+    private void deleteAdvertisement(String profileLink, long chatId, int indexToRemove) {
         try (Reader reader = new FileReader(FILE_NAME)) {
             Gson gson = new Gson();
             Type type = new TypeToken<Map<String, List<Advertisement>>>() {}.getType();
