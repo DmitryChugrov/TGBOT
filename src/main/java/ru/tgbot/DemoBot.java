@@ -17,6 +17,7 @@ import java.nio.file.StandardCopyOption;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -28,10 +29,7 @@ public class DemoBot extends TelegramLongPollingBot {
     private final String BOT_NAME;
     private Map<Long, Advertisement> adData;
     private Map<String, Advertisement> usersAd;
-    Storage storage = new Storage();
     private ExecutorService executor;
-    private final List<String> WHITE_LIST = new ArrayList<>();
-
     public DemoBot(String token, String chatId) {
         this.BOT_TOKEN = token;
         this.BOT_NAME = chatId;
@@ -150,20 +148,20 @@ public class DemoBot extends TelegramLongPollingBot {
                 }if ("/help".equals(messageText)){
                     logger.info("Received /help command from " + profileLink);
                     sendOut(chatId, "Список команд для работы с ботом: \n" +
-                            "start - Старт работы с ботом\n" +
-                            "createtransport - Создание в объявлений в категории \"Транспорт\"\n" +
-                            "createproperty - Создание в объявлений в категории \"Недвижимость\" \n" +
-                            "createservices - Создание в объявлений в категории \"Услуги\" \n" +
-                            "createpersonalthings - Создание в объявлений в категории \"Личные вещи\" \n" +
-                            "createjob - Создание в объявлений в категории \"Работа\" \n" +
-                            "createhobbyandentertainment - Создание в объявлений в категории \"Хобби и отдых\"\n" +
-                            "createforhomeandgarden - Создание в объявлений в категории \"Для дома и сада\"\n" +
-                            "createelectronics - Создание в объявлений в категории \"Электроника\"\n" +
-                            "createautoparts - Создание в объявлений в категории \"Запчасти\"\n" +
-                            "createanimals - Создание в объявлений в категории \"Животные\"\n" +
-                            "view - Просмотр объявлений\n" +
-                            "viewmy - Просмотр собственных объявлений\n" +
-                            "deletemyad - Удаление собственного объявления \n");
+                            "/start - Старт работы с ботом\n" +
+                            "/createtransport - Создание в объявлений в категории \"Транспорт\"\n" +
+                            "/createproperty - Создание в объявлений в категории \"Недвижимость\" \n" +
+                            "/createservices - Создание в объявлений в категории \"Услуги\" \n" +
+                            "/createpersonalthings - Создание в объявлений в категории \"Личные вещи\" \n" +
+                            "/createjob - Создание в объявлений в категории \"Работа\" \n" +
+                            "/createhobbyandentertainment - Создание в объявлений в категории \"Хобби и отдых\"\n" +
+                            "/createforhomeandgarden - Создание в объявлений в категории \"Для дома и сада\"\n" +
+                            "/createelectronics - Создание в объявлений в категории \"Электроника\"\n" +
+                            "/createautoparts - Создание в объявлений в категории \"Запчасти\"\n" +
+                            "/createanimals - Создание в объявлений в категории \"Животные\"\n" +
+                            "/view - Просмотр объявлений\n" +
+                            "/viewmy - Просмотр собственных объявлений\n" +
+                            "/deletemyad - Удаление собственного объявления \n");
                 }
                 if ("/deletemyad".equals(messageText)) {
                     logger.info("Received /deletemyad command from " + profileLink);
@@ -249,6 +247,7 @@ public class DemoBot extends TelegramLongPollingBot {
                 saveData(usersAd);
 
                 sendOut(chatId, "Объявление в категории " + currentAd.getCategory() + " успешно создано!");
+                logger.info("User "+ profileLink + " created the ad successfully in the category " + currentAd.getCategory());
             } catch (TelegramApiException | IOException e) {
                 e.printStackTrace();
             }
@@ -294,18 +293,24 @@ public class DemoBot extends TelegramLongPollingBot {
     }
 
     private void loadData(long chatId) {
+        ExecutorService executor = Executors.newFixedThreadPool(5);
         try (Reader reader = new FileReader(FILE_NAME)) {
             Gson gson = new Gson();
             Type type = new TypeToken<Map<String, List<Advertisement>>>() {}.getType();
             Map<String, List<Advertisement>> data = gson.fromJson(reader, type);
-            for (String key : data.keySet()) {
+            data.keySet().forEach(key -> {
                 List<Advertisement> ads = data.get(key);
                 for (Advertisement ad : ads) {
-                        String adInfo = "Пользователь: " + key + "\n" + "Категория: " + ad.getCategory() + "\n" + "Заголовок: " + ad.getTitle() + "\n" +
-                                "Описание: " + ad.getDescription() + "\n" + "Цена (руб): " + ad.getPrice();
+                    String adInfo = "Пользователь: " + key + "\n" + "Категория: " + ad.getCategory() + "\n" + "Заголовок: " + ad.getTitle() + "\n" +
+                            "Описание: " + ad.getDescription() + "\n" + "Цена (руб): " + ad.getPrice();
+                    Callable<Void> task = () -> {
                         sendPhoto(chatId, ad.getPhoto(), adInfo);
+                        return null;
+                    };
+                    executor.submit(task);
                 }
-            }
+            });
+            executor.shutdown();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -354,8 +359,6 @@ public class DemoBot extends TelegramLongPollingBot {
                     sendOut(chatId, "Объявление успешно удалено.");
                 }else if(indexToRemove == -1){
                     sendOut(chatId, "Выполнен выход из функции удаления объявления");
-                }else {
-                    sendOut(chatId, "Неверный индекс объявления.");
                 }
             } else {
                 sendOut(chatId, "Не найдено объявлений для данной ссылки на профиль.");
