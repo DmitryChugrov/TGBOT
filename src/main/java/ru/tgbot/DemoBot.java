@@ -231,21 +231,15 @@ public class DemoBot extends TelegramLongPollingBot {
                     .orElse(null)
                     .getFileId();
             try {
-                // Получаем информацию о файле
                 GetFile getFile = new GetFile();
                 getFile.setFileId(fileId);
                 File file = execute(getFile);
-
-                // Сохраняем фото на диск
                 java.io.File photoFile = customDownloadFile(file);
-
-                // Получаем ссылку на сохраненное фото
                 String photoLink = "D:\\TGBOT\\photos\\" + photoFile.getName();
                 currentAd.setPhoto(photoLink);
                 adData.remove(chatId);
                 usersAd.put(profileLink, currentAd);
                 saveData(usersAd);
-
                 sendOut(chatId, "Объявление в категории " + currentAd.getCategory() + " успешно создано!");
                 logger.info("User "+ profileLink + " created the ad successfully in the category " + currentAd.getCategory());
             } catch (TelegramApiException | IOException e) {
@@ -293,24 +287,18 @@ public class DemoBot extends TelegramLongPollingBot {
     }
 
     private void loadData(long chatId) {
-        ExecutorService executor = Executors.newFixedThreadPool(5);
         try (Reader reader = new FileReader(FILE_NAME)) {
             Gson gson = new Gson();
-            Type type = new TypeToken<Map<String, List<Advertisement>>>() {}.getType();
+            Type type = new TypeToken<Map<String, List<Advertisement>>>(){}.getType();
             Map<String, List<Advertisement>> data = gson.fromJson(reader, type);
-            data.keySet().forEach(key -> {
+            for (String key : data.keySet()) {
                 List<Advertisement> ads = data.get(key);
                 for (Advertisement ad : ads) {
                     String adInfo = "Пользователь: " + key + "\n" + "Категория: " + ad.getCategory() + "\n" + "Заголовок: " + ad.getTitle() + "\n" +
                             "Описание: " + ad.getDescription() + "\n" + "Цена (руб): " + ad.getPrice();
-                    Callable<Void> task = () -> {
-                        sendPhoto(chatId, ad.getPhoto(), adInfo);
-                        return null;
-                    };
-                    executor.submit(task);
+                    sendPhoto(chatId, ad.getPhoto(), adInfo);
                 }
-            });
-            executor.shutdown();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
