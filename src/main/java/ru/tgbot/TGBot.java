@@ -22,7 +22,7 @@ import java.util.concurrent.Executors;
 
 
 public class TGBot extends TelegramLongPollingBot {
-    private static final String FILE_NAME = "D:\\TGBOT\\data.json";
+    private static final String FILE_NAME = "\\TGBOT\\data.json";
     private static Logger logger = Logger.getLogger(TGBot.class);
     private final String BOT_TOKEN;
     private final String BOT_NAME;
@@ -167,7 +167,7 @@ public class TGBot extends TelegramLongPollingBot {
                     showMyAds(profileLink,chatId);
                     sendOut(chatId, "Введите индекс объявления. Для выхода из этой функции введите \" -1 \"");
                 } else {
-                    int indexToRemove = 0;
+                    int indexToRemove;
                     indexToRemove = Integer.parseInt(messageText);
                     deleteAdvertisement(profileLink,chatId,indexToRemove);
                 }
@@ -234,7 +234,7 @@ public class TGBot extends TelegramLongPollingBot {
                 getFile.setFileId(fileId);
                 File file = execute(getFile);
                 java.io.File photoFile = customDownloadFile(file);
-                String photoLink = "D:\\TGBOT\\photos\\" + photoFile.getName();
+                String photoLink = "\\TGBOT\\photos\\" + photoFile.getName();
                 currentAd.setPhoto(photoLink);
                 adData.remove(chatId);
                 usersAd.put(profileLink, currentAd);
@@ -250,7 +250,7 @@ public class TGBot extends TelegramLongPollingBot {
     private java.io.File customDownloadFile(File file) throws TelegramApiException, IOException {
         String filePath = file.getFilePath();
         java.io.File downloadedFile = downloadFile(filePath);
-        java.io.File savedFile = new java.io.File("D:\\TGBOT\\photos\\" + downloadedFile.getName() + ".jpg");
+        java.io.File savedFile = new java.io.File("\\TGBOT\\photos\\" + downloadedFile.getName() + ".jpg");
         Files.copy(downloadedFile.toPath(), savedFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
         return savedFile;
@@ -261,11 +261,9 @@ public class TGBot extends TelegramLongPollingBot {
             Gson gson = new Gson();
             Type type = new TypeToken<Map<String, List<Advertisement>>>() {}.getType();
             Map<String, List<Advertisement>> existingData = gson.fromJson(reader, type);
-
             for (Map.Entry<String, Advertisement> entry : data.entrySet()) {
                 String profileLink = entry.getKey();
                 Advertisement advertisement = entry.getValue();
-
                 if (existingData.containsKey(profileLink)) {
                     List<Advertisement> advertisements = existingData.get(profileLink);
                     advertisements.add(advertisement);
@@ -330,13 +328,16 @@ public class TGBot extends TelegramLongPollingBot {
             Gson gson = new Gson();
             Type type = new TypeToken<Map<String, List<Advertisement>>>() {}.getType();
             Map<String, List<Advertisement>> existingData = gson.fromJson(reader, type);
-
             if (existingData.containsKey(profileLink)) {
                 List<Advertisement> advertisements = existingData.get(profileLink);
                 if (indexToRemove >= 0 && indexToRemove < advertisements.size()) {
+                    String photoFileName = advertisements.get(indexToRemove).getPhoto();
+                    java.io.File photoFile = new java.io.File(photoFileName);
+                    if (photoFile.exists()) {
+                        photoFile.delete();
+                    }
                     advertisements.remove(indexToRemove);
                     existingData.put(profileLink, advertisements);
-
                     try (Writer writer = new FileWriter(FILE_NAME)) {
                         gson.toJson(existingData, writer);
                     } catch (IOException e) {
