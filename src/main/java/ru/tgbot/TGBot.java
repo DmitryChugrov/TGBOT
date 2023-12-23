@@ -22,7 +22,7 @@ import java.util.concurrent.Executors;
 
 
 public class TGBot extends TelegramLongPollingBot {
-    private static final String FILE_NAME = "\\TGBOT\\TGBOT\\target\\data.json";
+    private static final String FILE_NAME = "/root/TGBOT/TGBOT/target/data.json";
     private static Logger logger = Logger.getLogger(TGBot.class);
     private final String BOT_TOKEN;
     private final String BOT_NAME;
@@ -233,7 +233,7 @@ public class TGBot extends TelegramLongPollingBot {
                 getFile.setFileId(fileId);
                 File file = execute(getFile);
                 java.io.File photoFile = customDownloadFile(file);
-                String photoLink = "TGBOT\\TGBOT\\target\\photos\\" + photoFile.getName();
+                String photoLink = "/root/TGBOT/TGBOT/target/photos/" + photoFile.getName();
                 currentAd.setPhoto(photoLink);
                 adData.remove(chatId);
                 usersAd.put(profileLink, currentAd);
@@ -249,7 +249,7 @@ public class TGBot extends TelegramLongPollingBot {
     private java.io.File customDownloadFile(File file) throws TelegramApiException, IOException {
         String filePath = file.getFilePath();
         java.io.File downloadedFile = downloadFile(filePath);
-        java.io.File savedFile = new java.io.File("TGBOT\\TGBOT\\target\\photos\\" + downloadedFile.getName() + ".jpg");
+        java.io.File savedFile = new java.io.File("/root/TGBOT/TGBOT/target/photos/" + downloadedFile.getName() + ".jpg");
         Files.copy(downloadedFile.toPath(), savedFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
         return savedFile;
