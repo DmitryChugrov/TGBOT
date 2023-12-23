@@ -47,7 +47,6 @@ public class TGBot extends TelegramLongPollingBot {
         return BOT_TOKEN;
     }
 
-
     @Override
     public void onUpdateReceived(Update update) {
         executor.submit(() -> {
